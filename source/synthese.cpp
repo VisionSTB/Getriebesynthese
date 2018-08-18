@@ -28,23 +28,23 @@ template<typename T>
 void ExportSCAD( VEbenenLagen const & crvEL,
 	         VGrundpunkte const & crvGP )
     {
-    auto A0 = crvGP[0].G0();
-    auto B0 = crvGP[1].G0();
-    auto E1 = crvEL[0];
-    auto E2 = crvEL[1];
-    auto E3 = crvEL[2];
+    auto const A0 = crvGP[0].G0();
+    auto const B0 = crvGP[1].G0();
+    auto const E1 = crvEL[0];
+    auto const E2 = crvEL[1];
+    auto const E3 = crvEL[2];
 
-    auto a1 = crvGP[0].GPoint(0);
-    auto b1 = crvGP[1].GPoint(0);
-    auto a2 = crvGP[0].GPoint(1);
-    auto b2 = crvGP[1].GPoint(1);
-    auto a3 = crvGP[0].GPoint(2);
-    auto b3 = crvGP[1].GPoint(2);
+    auto const a1 = crvGP[0].GPoint(0);
+    auto const b1 = crvGP[1].GPoint(0);
+    auto const a2 = crvGP[0].GPoint(1);
+    auto const b2 = crvGP[1].GPoint(1);
+    auto const a3 = crvGP[0].GPoint(2);
+    auto const b3 = crvGP[1].GPoint(2);
 
-    auto GL = L(A0, B0);
-    auto AL = L(A0, a1);
-    auto BL = L(B0, b1);
-    auto CL = L(a1, b1);
+    auto const GL = L(A0, B0);
+    auto const AL = L(A0, a1);
+    auto const BL = L(B0, b1);
+    auto const CL = L(a1, b1);
 
     TRenderItem oSubM{};
     TRenderData oData{};
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
         {
-        SDL_Window *   pSdlWindow   = nullptr;
+        SDL_Window   * pSdlWindow   = nullptr;
         SDL_Renderer * pSdlRenderer = nullptr;
 
         if (SDL_CreateWindowAndRenderer(800, 600, 0, &pSdlWindow, &pSdlRenderer) == 0)

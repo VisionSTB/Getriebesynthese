@@ -28,7 +28,7 @@ struct SPointD
     SPointD(SDL_Point const & P) : x(P.x), y(P.y) {}
 
     double x{0}, y{0};
-    explicit operator SDL_Point()
+    explicit operator SDL_Point() const
 	{
 	return { (int)x, (int)y };
 	}
@@ -44,8 +44,6 @@ struct SLineD
     SLineD operator - ( SPointD const & P ) const { return { bHasP1, x1-P.x, y1-P.y, x2-P.x, y2-P.y }; }
     };
 
-
-
 struct SUmkreisD
     {
     double  R;
@@ -59,7 +57,6 @@ struct SCollision
     };
 
 
-//using VLines       = std::vector<SLineD>;
 using VEbenenLagen = std::vector<SLineD>;
 using VPolDreieck  = std::vector<SPointD>;
 using VGelenke     = std::vector<SPointD>;
@@ -69,8 +66,8 @@ SLineD FixedLenLine(SLineD & roL, double const & crnLenEbene, bool const & crbFi
     {
     double const dx   = roL.x1 - roL.x2;
     double const dy   = roL.y1 - roL.y2;
-    double const nLen = sqrt(dx*dx + dy*dy);
-    double const q    = (double)crnLenEbene / ((nLen!=0)?nLen:1);
+    double const dLen = sqrt(dx*dx + dy*dy);
+    double const q    = (double)crnLenEbene / ((dLen!=0)?dLen:1);
     if (crbFirst)
         {
         roL.x2 = roL.x1 - dx*q;
@@ -86,7 +83,7 @@ SLineD FixedLenLine(SLineD & roL, double const & crnLenEbene, bool const & crbFi
 
 SPointD Intersection(SLineD const & E1, SLineD const & E2)
     {
-    double dx1,dx2,m1,n1,m2,n2;
+    double dx1, dx2, m1, n1, m2, n2;
 
     dx1 = E1.x2 - E1.x1;
     dx2 = E2.x2 - E2.x1;
@@ -165,7 +162,7 @@ void MakeCircle()
         }
     } // void MakeCircle()
 
-void RenderCircle(SDL_Renderer * pSdlRenderer, int const & crnRadius, int const & X, int const & Y )
+void RenderCircle(SDL_Renderer * const pSdlRenderer, int const & crnRadius, int const & X, int const & Y)
     {
     K180 aKreis;
     memcpy(aKreis, g_cnCircle, sizeof(g_cnCircle));
@@ -176,12 +173,12 @@ void RenderCircle(SDL_Renderer * pSdlRenderer, int const & crnRadius, int const 
     SDL_RenderDrawLines(pSdlRenderer, aKreis, g_cnSteps);
     } // void RenderCircle(...
 
-SUmkreisD RenderUmkreis( SDL_Renderer * pSdlRenderer, SPointD const & P1, SPointD const & P2, SPointD const & P3 )
+SUmkreisD RenderUmkreis(SDL_Renderer * const pSdlRenderer, SPointD const & P1, SPointD const & P2, SPointD const & P3)
     {
     SLineD const L1{ true, (double)P1.x, (double)P1.y, (double)P2.x, (double)P2.y };
-    auto La = Perpendicle(L1);
+    auto const La = Perpendicle(L1);
     SLineD const L2{ true, (double)P1.x, (double)P1.y, (double)P3.x, (double)P3.y };
-    auto Lb = Perpendicle(L2);
+    auto const Lb = Perpendicle(L2);
 
     auto M = Intersection( La, Lb );
     auto R = sqrt( (double)(M.x - L1.x1)*(M.x - L1.x1) + (M.y - L1.y1)*(M.y - L1.y1) );
@@ -192,43 +189,28 @@ SUmkreisD RenderUmkreis( SDL_Renderer * pSdlRenderer, SPointD const & P1, SPoint
     }
 
 
-
-
-
-
 class CGrundpunkt
     {
     protected:
 
 	double    m_dX{};
 	double    m_dY{};
-	SUmkreisD m_tUK{};
-	A3Gelenke m_a3Gelenke{}; // Gelenkpunkte
-	bool      m_bFixed{true};
-
+	SUmkreisD m_tUK{};        // Umkreis um 3 homologe Punkte
+	A3Gelenke m_a3Gelenke{};  // Gelenkpunkte
+	bool      m_bFixed{true}; // object is finalized?
 
     public:
 
 	CGrundpunkt(SPointD const & P123) : m_dX(P123.x), m_dY(P123.y) {}
 	CGrundpunkt(CGrundpunkt const & src) = default;
-/*
-	CGrundpunkt(CGrundpunkt const & src)
-	    {
-	    m_dX        = src.m_dX;
-	    m_dY        = src.m_dY;
-	    m_tUK.R       = src.m_tUK.R;
-	    m_tUK.M       = src.m_tUK.M;
-	    m_a3Gelenke = src.m_a3Gelenke;
-	    m_bFixed    = src.m_bFixed;
-	    }
-*/
+
 	void FixIt( bool bFixit = true ) { m_bFixed = bFixit; }
-	bool Isfix() { return m_bFixed; }
+        bool Isfix() const { return m_bFixed; }
 
 	SPointD const & G0() const { return m_tUK.M; }
-	SPointD const & GPoint( int i ) const { return m_a3Gelenke[i]; }
+	SPointD const & GPoint( int const & i ) const { return m_a3Gelenke[i]; }
 
-	void UpdateAndShow(SDL_Renderer * pSdlRenderer, SPointD const & P123, VPolDreieck const & Poldreieck)
+	void UpdateAndShow(SDL_Renderer * const pSdlRenderer, SPointD const & P123, VPolDreieck const & Poldreieck)
 	    {
 	    Update(P123);
 	    Show(pSdlRenderer, Poldreieck);
@@ -240,7 +222,7 @@ class CGrundpunkt
 	    m_dY = P123.y;
 	    }
 
-	void Show(SDL_Renderer * pSdlRenderer, VPolDreieck const & Poldreieck)
+	void Show(SDL_Renderer * const pSdlRenderer, VPolDreieck const & Poldreieck)
 	    {
 	    RenderCircle( pSdlRenderer, 8, m_dX, m_dY );
 	    RenderCircle( pSdlRenderer, 7, m_dX, m_dY );
@@ -254,8 +236,8 @@ class CGrundpunkt
 		if (n == 0) { i=0; j=1; }
 		if (n == 1) { i=0; j=2; }
 		if (n == 2) { i=1; j=2; }
-		SLineD PL{ true, (double)Poldreieck[i].x, (double)Poldreieck[i].y,
-				 (double)Poldreieck[j].x, (double)Poldreieck[j].y};
+		SLineD const PL{ true, (double)Poldreieck[i].x, (double)Poldreieck[i].y,
+				       (double)Poldreieck[j].x, (double)Poldreieck[j].y};
 		G[n] = PointMirror( pSdlRenderer, { m_dX, m_dY }, PL );
 		RenderCircle( pSdlRenderer, 20, G[n].x, G[n].y );
 		} // for (...
