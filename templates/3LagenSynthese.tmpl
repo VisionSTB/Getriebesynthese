@@ -19,23 +19,87 @@ d=1;
 gd= 30; gi= 20; gh= 10;
 
 // Getriebe
-gl={{ Getriebe.GL }}; //100;
-al={{ Getriebe.AL }}; // 30;
-bl={{ Getriebe.BL }}; // 80;
-cl={{ Getriebe.CL }}; // 90;
+A0x={{ Getriebe.A0.x }};
+A0y={{ Getriebe.A0.y }};
+B0x={{ Getriebe.B0.x }};
+B0y={{ Getriebe.B0.y }};
 
-// Ebenen
-polygon(points=[[{{ Ebene.E1P1.x }}, {{ Ebene.E1P1.y }}],[{{ Ebene.E1P2.x }}, {{ Ebene.E1P2.y }}]], paths=[[0,1]]);
-polygon(points=[[{{ Ebene.E2P1.x }}, {{ Ebene.E2P1.y }}],[{{ Ebene.E2P2.x }}, {{ Ebene.E2P2.y }}]], paths=[[0,1]]);
-polygon(points=[[{{ Ebene.E3P1.x }}, {{ Ebene.E3P1.y }}],[{{ Ebene.E3P2.x }}, {{ Ebene.E3P2.y }}]], paths=[[0,1]]);
+a1x={{ Getriebe.a1.x }}; a1y={{ Getriebe.a1.y }}; b1x={{ Getriebe.b1.x }}; b1y={{ Getriebe.b1.y }};
+a2x={{ Getriebe.a2.x }}; a2y={{ Getriebe.a2.y }}; b2x={{ Getriebe.b2.x }}; b2y={{ Getriebe.b2.y }};
+a3x={{ Getriebe.a3.x }}; a3y={{ Getriebe.a3.y }}; b3x={{ Getriebe.b3.x }}; b3y={{ Getriebe.b3.y }};
 
+gl={{ Getriebe.GL }}; // 100;
+al={{ Getriebe.AL }}; //  30;
+bl={{ Getriebe.BL }}; //  80;
+cl={{ Getriebe.CL }}; //  90;
 
+// Ebenenlagen
+translate([ -A0x, -A0y, 0]){
+E({{ Ebene.E1P1.x }}, {{ Ebene.E1P1.y }}, {{ Ebene.E1P2.x }}, {{ Ebene.E1P2.y }}, [0,0,1], "E1");
+E({{ Ebene.E2P1.x }}, {{ Ebene.E2P1.y }}, {{ Ebene.E2P2.x }}, {{ Ebene.E2P2.y }}, [0,1,0], "E2");
+E({{ Ebene.E3P1.x }}, {{ Ebene.E3P1.y }}, {{ Ebene.E3P2.x }}, {{ Ebene.E3P2.y }}, [1,0,0], "E3"); 
+}
+
+/*-------------------------------------------------------------------*/
+
+color([0.5,0.5,0.5], 1) W(A0x, A0y, B0x, B0y,-gh);
+color([0.5,0.5,1.0], 1) W(A0x, A0y, a1x, a1y,  0);
+color([0.5,1.0,0.5], 1) W(a1x, a1y, b1x, b1y, gh);
+color([1.0,0.5,0.5], 1) W(b1x, b1y, B0x, B0y,  0);
+
+alfa=.8;
+color([0.5,0.5,0.5], alfa) W(A0x, A0y, B0x, B0y,-gh);
+color([0.5,0.5,1.0], alfa) W(A0x, A0y, a2x, a2y,  0);
+color([0.5,1.0,0.5], alfa) W(a2x, a2y, b2x, b2y, gh);
+color([1.0,0.5,0.5], alfa) W(b2x, b2y, B0x, B0y,  0);
+
+alfa=.6;
+color([0.5,0.5,0.5], alfa) W(A0x, A0y, B0x, B0y,-gh);
+color([0.5,0.5,1.0], alfa) W(A0x, A0y, a3x, a3y,  0);
+color([0.5,1.0,0.5], alfa) W(a3x, a3y, b3x, b3y, gh);
+color([1.0,0.5,0.5], alfa) W(b3x, b3y, B0x, B0y,  0);
+
+module W(p1x, p1y, p2x, p2y, h)
+    {
+    dx=p2x-p1x;
+    dy=p2y-p1y;
+    l =sqrt( pow(dx, 2) + pow(dy, 2) );
+    c =(dy > 0) ? 1 : -1;
+    w =c * acos(dx/l);
+    if ( h < 0 )
+        {
+        h = -h;
+        translate([p1x-A0x, p1y-A0y, 2*h]) rotate([180, 0, w]) lever(gl = l, gh=gh, h1=h,  h2=h);
+        }
+    else
+        {
+        translate([p1x-A0x, p1y-A0y, -h]) rotate([0, 0, w]) lever(gl = l, gh=gh, h1=h,  h2=h);
+        }
+    }
+
+translate([ -A0x, -A0y,  0]) {
+color([0,0,1], 0.1) translate([0,0,-10]) polygon([[A0x,A0y], [a1x,a1y], [b1x,b1y], [B0x,B0y]]);
+color([0,1,0], 0.1) translate([0,0,-20]) polygon([[A0x,A0y], [a2x,a2y], [b2x,b2y], [B0x,B0y]]);
+color([1,0,0], 0.1) translate([0,0,-30]) polygon([[A0x,A0y], [a3x,a3y], [b3x,b3y], [B0x,B0y]]); }
 
 gh=7.5;
 explosion=2*gh*0;
 
+module E(x1, y1, x2, y2, c=[1,0,0], t="Q")
+    {
+    dx = x2-x1;
+    dy = y2-y1;
+    l  = sqrt( pow(dx, 2) + pow(dy, 2) );
+    c = (dy > 0) ? 1 : -1;
+    translate([x1, y1, 0])
+        rotate([0, 0, c * acos(dx/l)]) {
+            color([0.5,0.5,1], 0.9) cube([l, gi, gh], center=false);
+            translate([ 5, 5, 10]) color([0,0,0], 1) text(t);
+        }
+    }
 
 
+/*
 translate([ 0, 0,  0-explosion])              lever(gl = gl, gh=gh, h1=gh, h2=gh);
 color("royalblue", .75)
 translate([gl, 0, gh]) rotate([0, 0, 360*$t]) lever(gl = al, gh=gh, h1=0,  h2=0);
@@ -55,4 +119,5 @@ translate([gl+x, y, 3*gh+explosion]) rotate([0, 180, +w1+w2]) { lever(gl = cl, g
         cube([10, 60, gh], center=true);
     translate([ 0, -30,  -gh/2]) 
         cylinder(d=10, h=gh*3); }
-    }
+    }}}*/
+

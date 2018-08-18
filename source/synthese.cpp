@@ -6,46 +6,75 @@
 #include "grundpunkt.h"
 #include "te.h"
 
-
+using namespace std::string_literals;
 
 VEbenenLagen g_vEbenen;     // E1,  E2,  E3  = 3 homologe Lagen einer Ebene
 VPolDreieck  g_vPoldreieck; // P12, P13, P23 = 3 Polpunkte zu den o.g.Ebenenlagen
 VGelenke     g_vGelenke;
 SCollision   g_tCollision;
 
-CGrundpunkt g_oGrundpunkt ( {-1, -1} );
-VGrundpunkte  g_vGrundpunkte;  // A123, B123
+CGrundpunkt  g_oGrundpunkt ( {-1, -1} );
+VGrundpunkte g_vGrundpunkte;  // A123, B123
 
 // using TRenderItem = std::map<std::string, std::string>;
 // using TRenderData = std::multimap<std::string, TRenderItem>;
 
-void ExportSCAD( SPointD const & A0,
-		 SPointD const & B0,
-		 double  const & GL,
-		 double  const & AL,
-		 double  const & BL,
-		 double  const & CL,
-		 SLineD const & E1,
-		 SLineD const & E2,
-		 SLineD const & E3
-		)
+template<typename T>
+    auto L( T const & P1, T const & P2 )
+	{
+	return sqrt( pow((P1.x-P2.x), 2) + pow((P1.y-P2.y), 2) );
+	}
+
+void ExportSCAD( VEbenenLagen const & crvEL,
+	         VGrundpunkte const & crvGP )
     {
+    auto A0 = crvGP[0].G0();
+    auto B0 = crvGP[1].G0();
+    auto E1 = crvEL[0];
+    auto E2 = crvEL[1];
+    auto E3 = crvEL[2];
+
+    auto a1 = crvGP[0].GPoint(0);
+    auto b1 = crvGP[1].GPoint(0);
+    auto a2 = crvGP[0].GPoint(1);
+    auto b2 = crvGP[1].GPoint(1);
+    auto a3 = crvGP[0].GPoint(2);
+    auto b3 = crvGP[1].GPoint(2);
+
+    auto GL = L(A0, B0);
+    auto AL = L(A0, a1);
+    auto BL = L(B0, b1);
+    auto CL = L(a1, b1);
 
     TRenderItem oSubM{};
     TRenderData oData{};
 
-    oSubM.emplace("A0x", std::to_string(A0.x));
-    oSubM.emplace("A0y", std::to_string(A0.y));
+    oSubM.emplace("A0.x", std::to_string(A0.x));
+    oSubM.emplace("A0.y", std::to_string(A0.y));
+    oSubM.emplace("B0.x", std::to_string(B0.x));
+    oSubM.emplace("B0.y", std::to_string(B0.y));
 
-    oSubM.emplace("B0x", std::to_string(B0.x));
-    oSubM.emplace("B0y", std::to_string(B0.y));
+    oSubM.emplace("a1.x", std::to_string(a1.x));
+    oSubM.emplace("a1.y", std::to_string(a1.y));
+    oSubM.emplace("b1.x", std::to_string(b1.x));
+    oSubM.emplace("b1.y", std::to_string(b1.y));
+
+    oSubM.emplace("a2.x", std::to_string(a2.x));
+    oSubM.emplace("a2.y", std::to_string(a2.y));
+    oSubM.emplace("b2.x", std::to_string(b2.x));
+    oSubM.emplace("b2.y", std::to_string(b2.y));
+
+    oSubM.emplace("a3.x", std::to_string(a3.x));
+    oSubM.emplace("a3.y", std::to_string(a3.y));
+    oSubM.emplace("b3.x", std::to_string(b3.x));
+    oSubM.emplace("b3.y", std::to_string(b3.y));
 
     oSubM.emplace("GL",  std::to_string(GL));
     oSubM.emplace("AL",  std::to_string(AL));
     oSubM.emplace("BL",  std::to_string(BL));
     oSubM.emplace("CL",  std::to_string(CL));
 
-    oData.emplace( "Getriebe", oSubM );
+    oData.emplace( "Getriebe"s, oSubM );
     oSubM.clear();
 
     oSubM.emplace("E1P1.x",  std::to_string(E1.x1));
@@ -63,11 +92,11 @@ void ExportSCAD( SPointD const & A0,
     oSubM.emplace("E3P2.x",  std::to_string(E3.x2));
     oSubM.emplace("E3P2.y",  std::to_string(E3.y2));
 
-    oData.emplace( "Ebene", oSubM );
+    oData.emplace( "Ebene"s, oSubM );
     oSubM.clear();
 
     Cte ote(oData, "3LagenSynthese.tmpl", "../templates/");
-    std::cout << ote << '\n';
+    std::cout << ote << std::endl;
     }
 
 
@@ -116,28 +145,16 @@ int main(int argc, char* argv[])
                 else
                     if ( !bLeftMouseDown )
                         {
-
                         if (!g_oGrundpunkt.Isfix())
 			    {
 			    g_oGrundpunkt.FixIt();
+			    if ( g_vGrundpunkte.size() == 2 ) g_vGrundpunkte.erase(g_vGrundpunkte.begin());
 			    if ( g_vGrundpunkte.size() < 2 )
 				{
 				g_vGrundpunkte.emplace_back(g_oGrundpunkt);
 				if ( g_vGrundpunkte.size() == 2 )
 				    {
-//******************************    Export("A0", "x");
-				    SPointD A0 = g_vGrundpunkte[0].G0();
-				    SPointD B0 = g_vGrundpunkte[1].G0();
-				    SPointD A  = g_vGrundpunkte[0].GPoint(0);
-				    SPointD B  = g_vGrundpunkte[1].GPoint(0);
-				    ExportSCAD( A0,
-					        B0,
-				    		sqrt( (A0.x-B0.x)*(A0.x-B0.x) + (A0.y-B0.y)*(A0.y-B0.y) ), // GL,
-				    		sqrt( (A0.x-A.x)*(A0.x-A.x) + (A0.y-A.y)*(A0.y-A.y) ),     // AL,
-				    		sqrt( (B0.x-B.x)*(B0.x-B.x) + (B0.y-B.y)*(B0.y-B.y) ),     // BL,
-				    		sqrt( (A.x-B.x)*(A.x-B.x) + (A.y-B.y)*(A.y-B.y) ),          // CL,
-						g_vEbenen[0], g_vEbenen[1], g_vEbenen[2]
-						 );
+				    ExportSCAD( g_vEbenen, g_vGrundpunkte);
 				    }
 				}
 			    }
@@ -165,6 +182,13 @@ int main(int argc, char* argv[])
 
                 SDL_SetRenderDrawColor(pSdlRenderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
                 SDL_RenderClear(pSdlRenderer);
+
+                SDL_SetRenderDrawColor(pSdlRenderer, 0xc0, 0xc0, 0xc0, SDL_ALPHA_OPAQUE);
+                for (int l = 0; l < 27; ++l)
+                    {
+                    SDL_RenderDrawLine(pSdlRenderer,  l*100, 0, l*100, 26*100 );
+                    SDL_RenderDrawLine(pSdlRenderer,  0, l*100, 26*100, l*100 );
+                    }
 
                 SDL_SetRenderDrawColor(pSdlRenderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
                 if ( !bLeftMouseDown )

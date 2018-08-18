@@ -18,14 +18,7 @@
 
 #include <SDL.h>
 
-using namespace std::string_literals; 
-
-struct SLineD
-    {
-    bool   bHasP1{false};
-    double x1{0}, y1{0};
-    double x2{0}, y2{0};
-    };
+//using namespace std::string_literals;
 
 struct SPointD
     {
@@ -39,7 +32,19 @@ struct SPointD
 	{
 	return { (int)x, (int)y };
 	}
+    SPointD operator - ( SPointD const & P ) const { return { x-P.x, y-P.y }; }
     };
+
+struct SLineD
+    {
+    bool   bHasP1{false};
+    double x1{0}, y1{0};
+    double x2{0}, y2{0};
+
+    SLineD operator - ( SPointD const & P ) const { return { bHasP1, x1-P.x, y1-P.y, x2-P.x, y2-P.y }; }
+    };
+
+
 
 struct SUmkreisD
     {

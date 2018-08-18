@@ -19,3 +19,5 @@ codeblocks odb.cbp
 
 use a CMAKE Generator suitable to you environment
 
+
+./synthese > ~/OpenSCAD/Getriebe/3LagenSynthese.scad
